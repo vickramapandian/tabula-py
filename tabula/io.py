@@ -504,7 +504,7 @@ def read_pdf_with_template(
 
 
 def convert_into(
-    input_path, output_path, output_format="csv", java_options=None, **kwargs
+    input_path, output_path, output_format="csv", encoding='utf-8', java_options=None, **kwargs
 ):
     """Convert tables from PDF into a file.
     Output file will be saved into `output_path`.
@@ -539,9 +539,18 @@ def convert_into(
         subprocess.CalledProcessError:
             If tabula-java execution failed.
     """
+    
+    if java_options is None:
+        java_options = []
+    elif isinstance(java_options, str):
+        java_options = shlex.split(java_options)
 
     if output_path is None or len(output_path) == 0:
         raise ValueError("'output_path' shoud not be None or empty")
+        
+    if encoding == "utf-8":
+        if not any("file.encoding" in opt for opt in java_options):
+            java_options += ["-Dfile.encoding=UTF8"]
 
     kwargs["output_path"] = output_path
     kwargs["format"] = _extract_format_for_conversion(output_format)
